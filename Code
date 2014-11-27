@@ -1,0 +1,36 @@
+x<-c('sp','rgdal','ggmap')
+lapply(x, require, character.only=T)
+
+drive=c("F:\\Research\\")
+#setwd('/home/bst/other/kebisu/BW_PMCoarse/Data')
+setwd(paste(drive,'BW_PMCoarse\\Data',sep='')) 
+output_location=c('C:\\Users\\ke52\\Desktop\\Download\\')
+#output_location=c('C:\\Users\\Keita\\Desktop\\Download\\')
+
+load('PMCoarseData.RData')#PMCoarse_data2
+PMCoarse_data2$Month=substr(PMCoarse_data2$Date.Local,6,7)
+PMCoarse_data2$Season=c('Winter')
+list_spring=c('03','04','05')
+PMCoarse_data2$Season[PMCoarse_data2$Month %in% list_spring]=c('Spring')
+list_summer=c('06','07','08')
+PMCoarse_data2$Season[PMCoarse_data2$Month %in% list_summer]=c('Summer')
+list_autumn=c('09','10','11')
+PMCoarse_data2$Season[PMCoarse_data2$Month %in% list_autumn]=c('Autumn')
+
+PMCoarse_Season=aggregate(PMCoarse_Value~FIPS+Season,PMCoarse_data2,mean)
+PM25_Season=aggregate(PM25_Value~FIPS+Season,PMCoarse_data2,mean)
+PM10_Season=aggregate(PM10_Value~FIPS+Season,PMCoarse_data2,mean)
+
+
+USBoundary=readOGR(paste(drive,"BW_PMCoarse\\GIS",sep=''), "USShape")
+plot(USBoundary)
+points(PMCoarse_data2$Longitude,PMCoarse_data2$Latitude,pch=16,col="red",cex=1.5)
+
+
+
+
+USMAP=get_map(location = "USA", zoom = 4)
+gmich <- ggmap(USMAP)
+gmich
+
+rm(list=ls())
