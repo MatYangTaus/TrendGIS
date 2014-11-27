@@ -29,8 +29,12 @@ points(PMCoarse_data2$Longitude,PMCoarse_data2$Latitude,pch=16,col="red",cex=1.5
 
 
 
-USMAP=get_map(location = "USA", zoom = 4)
+USMAP=get_map(location = "USA",zoom=5)
 gmich <- ggmap(USMAP)
 gmich
+
+testmap <- get_googlemap(c(lon=-100,lat=37.5) ,zoom=4, xlim=c(-125,-70), ylim=c(25,50))
+ggmap(testmap)
+
 
 rm(list=ls())
