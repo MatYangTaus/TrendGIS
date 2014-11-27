@@ -34,7 +34,7 @@ gmich <- ggmap(USMAP)
 gmich
 
 testmap <- get_googlemap(c(lon=-100,lat=37.5) ,zoom=4, xlim=c(-125,-70), ylim=c(25,50))
-ggmap(testmap)
+ggmap(testmap)+ geom_point(aes(x=Longitude,y=Latitude),data=PMCoarse_data2)
 
 
 rm(list=ls())
