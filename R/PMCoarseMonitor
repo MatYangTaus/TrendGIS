@@ -3,7 +3,8 @@ lapply(x, require, character.only=T)
 
 drive=c("E:\\")
 #setwd('/home/bst/other/kebisu/BW_PMCoarse/Data')
-setwd(paste(drive,'BW_PMCoarse\\Data',sep='')) 
+setwd("C:\\Users\\Keita\\Google Drive\\Research\\BW_PMCoarse\\Data")
+#setwd(paste(drive,'BW_PMCoarse\\Data',sep='')) 
 output_location=c('C:\\Users\\ke52\\Desktop\\Download\\')
 #output_location=c('C:\\Users\\Keita\\Desktop\\Download\\')
 
@@ -101,20 +102,21 @@ brks=(classIntervals(PMCoarse_Season$PMCoarse_Value,n=6))
 cuttingpoint=brks$brks
 plot(brks,pal=colours)
 USContinental=get_googlemap(c(lon=-96.3,lat=39.75) ,zoom=4, xlim=c(-130,-50), ylim=c(25,50),maptype = "hybrid")
-colScale <- scale_colour_manual(name = "test",values = colours,labels=cuttingpoint)
+colScale <- scale_colour_manual(name = "PM Coarse Level",values = colours,labels=leglabs(round(cuttingpoint,2.0)))
 
-
+test=cut(PMCoarse_Season$PMCoarse_Value, breaks=6)
+test2=(classIntervals(PMCoarse_Season$PMCoarse_Value,n=6))
 #Winter
 title=substitute(paste('PM Coarse Levels in Winter (n=',nn,')'),list(nn=sum(!is.na(PMCoarse_Season4$Winter))))
 ggmap(USContinental)+
-geom_point(aes(x=Longitude,y=Latitude),col=colours[findInterval(PMCoarse_Season4$Autumn,cuttingpoint)],data=PMCoarse_Season4,size=2.5)+
-#geom_point(data=PMCoarse_Season4,aes(x=Longitude,y=Latitude,col=colours[findInterval(PMCoarse_Season4$Autumn,cuttingpoint)]),size=2)+
-#geom_point(aes(x=Longitude,y=Latitude),color=PMCoarse_Season4$Autumn,data=PMCoarse_Season4,size=2.5)+
+#geom_point(aes(x=Longitude,y=Latitude),col=colours[findInterval(PMCoarse_Season4$Autumn,cuttingpoint)],data=PMCoarse_Season4,size=2.5)+
+geom_point(data=PMCoarse_Season4,aes(x=Longitude,y=Latitude,col=colours[findInterval(PMCoarse_Season4$Autumn,cuttingpoint)]),size=2)+
+#geom_point(data=PMCoarse_Season4,aes(x=Longitude,y=Latitude,col=PMCoarse_Season4$Autumn),size=2)+
 labs(x='Longitude',y='Latitude',title=title)+
 #scale_fill_brewer(palette="Spectral")
 colScale
 #scale_colour_brewer(palette = colours)
-# scale_color_discrete("Drug Cases")
+#scale_color_discrete("Drug Cases")
 #scale_colour_continuous(low = "red", high = "blue", space = "Lab", guide = "colorbar")
 #theme(axis.ticks = element_blank(),axis.text = element_blank())+
 #scale_fill_manual(name="Pollution Levels",values=colours,labels=cuttingpoint)
