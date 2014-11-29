@@ -1,6 +1,6 @@
 x<-c('sp','rgdal','ggmap','RColorBrewer','classInt','maptools')
 lapply(x, require, character.only=T)
-
+ 
 drive=c("E:\\")
 #setwd('/home/bst/other/kebisu/BW_PMCoarse/Data')
 setwd("C:\\Users\\Keita\\Google Drive\\Research\\BW_PMCoarse\\Data")
