@@ -142,7 +142,7 @@ print(plot3_fitline)
 dev.off()
 
 
-##Stratified by Region
+##Stratified by Region + Fitted Line
 plot_f<-function(dataframe,Region,numb)
 {
 	df=dataframe
@@ -159,7 +159,6 @@ plot_f<-function(dataframe,Region,numb)
 	ggtitle(title)
 	print(output)
 }
-
 pdf(paste(output_location,'CorrelationbyRegion.pdf',paste=''),15,10)
 plot_f(PM25DF,'Northeast_Northeast','2.5')
 plot_f(PM25DF,'Midwest_Midwest','2.5')
@@ -176,5 +175,43 @@ plot_f(PMCoarseDF,'West_West','10-2.5')
 dev.off()
 
 
+##Stratified by Region
+plot_f_fitted<-function(dataframe,Region,numb)
+{
+	df_temp=dataframe
+	TargetRegion=Region
+	df=df_temp[df_temp$Type==TargetRegion,]
+	pair_n=dim(df)[1]
+	title=substitute(paste(PM[kk],' Correlation and Distaince (n=',nn,') in ',ll),list(kk=numb,nn=pair_n,ll=TargetRegion))
+	fit_line=coef(lm(Correlation~Distance,data=df))
+	Intercept=1
+	fit_line2=lm(I(Correlation-Intercept)~0+Distance,data=df)
+	output=ggplot(df[df$Type==TargetRegion,],aes(x=Distance,y=Correlation,size=obs_days),guide=FALSE)+
+	geom_point(colour="white", fill="blue", shape=21)+
+	ylim(0,1)+
+	theme_bw()+
+	scale_size_area("Observation Days")+
+	xlab('Distance (km)')+
+	ylab('Correlation')+
+	ggtitle(title)+
+	geom_abline(intercept=fit_line[1],slope=fit_line[2],color='red',lwd=2)+
+	geom_abline(intercept=1,slope=fit_line2[[1]],color='black',lwd=2)
+	print(output)
+}
+
+pdf(paste(output_location,'CorrelationbyRegion_fitted.pdf',paste=''),15,10)
+plot_f_fitted(PM25DF,'Northeast_Northeast','2.5')
+plot_f_fitted(PM25DF,'Midwest_Midwest','2.5')
+plot_f_fitted(PM25DF,'South_South','2.5')
+plot_f_fitted(PM25DF,'West_West','2.5')
+plot_f_fitted(PM10DF,'Northeast_Northeast','10')
+plot_f_fitted(PM10DF,'Midwest_Midwest','10')
+plot_f_fitted(PM10DF,'South_South','10')
+plot_f_fitted(PM10DF,'West_West','10')
+plot_f_fitted(PMCoarseDF,'Northeast_Northeast','10-2.5')
+plot_f_fitted(PMCoarseDF,'Midwest_Midwest','10-2.5')
+plot_f_fitted(PMCoarseDF,'South_South','10-2.5')
+plot_f_fitted(PMCoarseDF,'West_West','10-2.5')
+dev.off()
 
 rm(list=ls())
