@@ -1,0 +1,51 @@
+x<-c('googlevis','XML')
+lapply(x, require, character.only=T)
+
+drive=c("E:\\")
+#drive=c("C:\\Users\\Keita\\Google Drive\\Research\\")
+#setwd('/home/bst/other/kebisu/BW_PMCoarse/Data')
+#setwd("C:\\Users\\Keita\\Google Drive\\Research\\BW_PMCoarse\\Data")
+setwd(paste(drive,'BW_PMCoarse\\Data',sep='')) 
+#output_location=c('C:\\Users\\ke52\\Desktop\\Download\\')
+output_location=c('C:\\Users\\Keita\\Desktop\\Download\\')
+
+url='http://www.epa.gov/envirofw/html/codes/state.html'
+StateFIPSList=data.frame(readHTMLTable(url))
+StateFIPSList2=StateFIPSList[,2:3]
+names(StateFIPSList2)=c('StateFIPS','State')
+
+load('PMCoarseData.RData')#PMCoarse_data2
+Outside_main=c('02','15','72','78')
+PMCoarse_data3=PMCoarse_data2[!(substr(PMCoarse_data2$FIPS,1,2) %in% Outside_main),]
+PMCoarse_data3$ObsNumber=sequence(rle(PMCoarse_data3$FIPS)$lengths)
+
+First_Obs=PMCoarse_data3[!duplicated(PMCoarse_data3$FIPS),c(1:2)]
+Last_Obs=PMCoarse_data3[!duplicated(PMCoarse_data3$FIPS,fromLast=TRUE),c(1,2,8)]
+length=rle(PMCoarse_data3$FIPS)
+Obs_Freq_Data=merge(First_Obs,Last_Obs,by='FIPS')
+colnames(Obs_Freq_Data)[2:3]=c('FirstObs','LastObs')
+Obs_Freq_Data$ObsPeriod=as.numeric(Obs_Freq_Data$LastObs-Obs_Freq_Data$FirstObs)
+Obs_Freq_Data$Freq=Obs_Freq_Data$ObsPeriod/Obs_Freq_Data$ObsNumber
+Obs_Freq_Data$StateFIPS=substr(Obs_Freq_Data$FIPS,1,2)
+summary(Obs_Freq_Data)
+Target_Fips=Obs_Freq_Data[Obs_Freq_Data$Freq<3.2&Obs_Freq_Data$ObsPeriod>2920&Obs_Freq_Data$FirstObs<'2001-01-11'&Obs_Freq_Data$LastObs>'2011-01-01',]
+Target_FipsList=Target_Fips$FIPS
+PMCoarse_data4=PMCoarse_data3[PMCoarse_data3$FIPS %in% Target_FipsList,]
+
+Motion=gvisMotionChart(PMCoarse_data4,idvar="FIPS",timevar="Date.Local")
+plot(Motion)
+
+PMCoarse_data4$YearMonth=substr(PMCoarse_data4$Date.Local,1,7)
+PM10_YearMonth=aggregate(PM10_Value~FIPS+YearMonth,mean,data=PMCoarse_data4)
+PM25_YearMonth=aggregate(PM25_Value~FIPS+YearMonth,mean,data=PMCoarse_data4)
+PMCoarse_YearMonth=aggregate(PMCoarse_Value~FIPS+YearMonth,mean,data=PMCoarse_data4)
+temp=merge(PMCoarse_YearMonth,PM10_YearMonth,by=c('FIPS','YearMonth'))
+PMCoarse_data5=merge(temp,PM25_YearMonth,by=c('FIPS','YearMonth'))
+PMCoarse_data5$StateFIPS=substr(PMCoarse_data5$FIPS,1,2)
+PMCoarse_data5$Date=as.Date(paste(PMCoarse_data5$YearMonth,'-15',sep=''),"%Y-%m-%d")
+PMCoarse_data6=merge(PMCoarse_data5,StateFIPSList2,by='StateFIPS')
+
+Motion=gvisMotionChart(PMCoarse_data6,idvar="FIPS",timevar="Date")
+plot(Motion)
+
+rm(list=ls())
