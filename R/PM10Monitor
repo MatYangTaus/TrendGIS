@@ -1,4 +1,4 @@
-x<-c('sp','rgdal','ggmap','RColorBrewer','classInt','maptools')
+x<-c('sp','rgdal','ggmap','RColorBrewer','classInt','maptools','gridExtra')
 lapply(x, require, character.only=T)
 
 drive=c("E:\\")
@@ -147,5 +147,6 @@ theme(legend.title = element_text(colour="Black", size=16, face="bold"))
 pdf(paste(output_location,'PM10MAP_GGMAP.pdf',paste=''),15,10)
 grid.arrange(plot1,plot2,plot3,plot4,ncol=2)
 dev.off()
+
 
 rm(list=ls())
