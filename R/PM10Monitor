@@ -83,4 +83,69 @@ title(main=list(title,cex=1.9))
 
 dev.off()
 
+
+
+##GGMAP GIS##GGMAP GIS
+
+
+##GGMAP GIS##GGMAP GIS
+brks=classIntervals(PM10_data4$PM10_Value,n=6)
+cuttingpoint=brks$brks
+USContinental=get_googlemap(c(lon=-96.3,lat=39.75) ,zoom=4, xlim=c(-130,-50), ylim=c(25,50),maptype = "hybrid")
+
+#Winter
+PM10_data8$Value=cut(PM10_data8$Winter,cuttingpoint)
+title=substitute(paste(PM[10],' Levels in Winter (n=',nn,')'),list(nn=sum(!is.na(PM10_data8$Winter))))
+Type5=ggmap(USContinental)+
+	geom_point(data=PM10_data8,aes(x=Longitude,y=Latitude,colour=Value),size=2)
+title_legend=expression(PM[10]*' Value')
+
+plot1=Type5+
+labs(x='Longitude',y='Latitude',title=title)+
+scale_colour_manual(name=title_legend,values=(brewer.pal(6,"Reds")))+
+theme(legend.title = element_text(colour="Black", size=16, face="bold"))#+
+#guides(colour=FALSE)
+
+#Spring
+PM10_data8$Value=cut(PM10_data8$Spring,cuttingpoint)
+title=substitute(paste(PM[10],' Levels in Spring (n=',nn,')'),list(nn=sum(!is.na(PM10_data8$Spring))))
+Type5=ggmap(USContinental)+
+	geom_point(data=PM10_data8,aes(x=Longitude,y=Latitude,colour=Value),size=2)
+title_legend=expression(PM[10]*' Value')
+
+plot2=Type5+
+labs(x='Longitude',y='Latitude',title=title)+
+scale_colour_manual(name=title_legend,values=(brewer.pal(6,"Reds")))+
+theme(legend.title = element_text(colour="Black", size=16, face="bold"))#+
+#guides(colour=FALSE)
+
+#Summer
+PM10_data8$Value=cut(PM10_data8$Summer,cuttingpoint)
+title=substitute(paste(PM[10],' Levels in Summer (n=',nn,')'),list(nn=sum(!is.na(PM10_data8$Summer))))
+Type5=ggmap(USContinental)+
+	geom_point(data=PM10_data8,aes(x=Longitude,y=Latitude,colour=Value),size=2)
+title_legend=expression(PM[10]*' Value')
+
+plot3=Type5+
+labs(x='Longitude',y='Latitude',title=title)+
+scale_colour_manual(name=title_legend,values=(brewer.pal(6,"Reds")))+
+theme(legend.title = element_text(colour="Black", size=16, face="bold"))#+
+#guides(colour=FALSE)
+
+#Autumn
+PM10_data8$Value=cut(PM10_data8$Autumn,cuttingpoint)
+title=substitute(paste(PM[10],' Levels in Autumn (n=',nn,')'),list(nn=sum(!is.na(PM10_data8$Autumn))))
+Type5=ggmap(USContinental)+
+	geom_point(data=PM10_data8,aes(x=Longitude,y=Latitude,colour=Value),size=2)
+title_legend=expression(PM[10]*' Value')
+
+plot4=Type5+
+labs(x='Longitude',y='Latitude',title=title)+
+scale_colour_manual(name=title_legend,values=(brewer.pal(6,"Reds")))+
+theme(legend.title = element_text(colour="Black", size=16, face="bold"))
+
+pdf(paste(output_location,'PM10MAP_GGMAP.pdf',paste=''),15,10)
+grid.arrange(plot1,plot2,plot3,plot4,ncol=2)
+dev.off()
+
 rm(list=ls())
