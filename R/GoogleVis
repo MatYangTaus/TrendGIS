@@ -1,7 +1,7 @@
 x<-c('googleVis','XML')
 lapply(x, require, character.only=T)
 
-drive=c("E:\\")
+drive=c("F:\\")
 #drive=c("C:\\Users\\Keita\\Google Drive\\Research\\")
 #setwd('/home/bst/other/kebisu/BW_PMCoarse/Data')
 #setwd("C:\\Users\\Keita\\Google Drive\\Research\\BW_PMCoarse\\Data")
@@ -9,10 +9,14 @@ setwd(paste(drive,'BW_PMCoarse\\Data',sep=''))
 #output_location=c('C:\\Users\\ke52\\Desktop\\Download\\')
 output_location=c('C:\\Users\\Keita\\Desktop\\Download\\')
 
-url='http://www.epa.gov/envirofw/html/codes/state.html'
-StateFIPSList=data.frame(readHTMLTable(url))
-StateFIPSList2=StateFIPSList[,2:3]
-names(StateFIPSList2)=c('StateFIPS','State')
+#url='http://www.epa.gov/envirofw/html/codes/state.html'
+#StateFIPSList=data.frame(readHTMLTable(url))
+#StateFIPSList2=StateFIPSList[,2:3]
+#names(StateFIPSList2)=c('StateFIPS','State')
+StateFIPSList2=read.csv('state_geocodes.csv')
+StateFIPSList2$St_FIPS=sprintf("%02d",StateFIPSList2$St_FIPS)
+StateFIPSList2=StateFIPSList2[order(StateFIPSList2$St_FIPS),]
+names(StateFIPSList2)[c(3,5:6)]=c('StateFIPS','RegionName','DivisionName')
 
 load('PMCoarseData.RData')#PMCoarse_data2
 Outside_main=c('02','15','72','78')
@@ -33,7 +37,7 @@ Target_FipsList=Target_Fips$FIPS
 PMCoarse_data4=PMCoarse_data3[PMCoarse_data3$FIPS %in% Target_FipsList,]
 
 Motion=gvisMotionChart(PMCoarse_data4,idvar="FIPS",timevar="Date.Local")
-plot(Motion)
+#plot(Motion)
 
 PMCoarse_data4$YearMonth=substr(PMCoarse_data4$Date.Local,1,7)
 PM10_YearMonth=aggregate(PM10_Value~FIPS+YearMonth,mean,data=PMCoarse_data4)
@@ -45,7 +49,12 @@ PMCoarse_data5$StateFIPS=substr(PMCoarse_data5$FIPS,1,2)
 PMCoarse_data5$Date=as.Date(paste(PMCoarse_data5$YearMonth,'-15',sep=''),"%Y-%m-%d")
 PMCoarse_data6=merge(PMCoarse_data5,StateFIPSList2,by='StateFIPS')
 
-Motion=gvisMotionChart(PMCoarse_data6,idvar="FIPS",timevar="Date")
+Motion=gvisMotionChart(PMCoarse_data6,idvar="FIPS",timevar="Date",xvar="PMCoarse_Value",yvar="PM25_Value",colorvar='RegionName',sizevar='PM10_Value')
 plot(Motion)
+
+Motion2=gvisMotionChart(PMCoarse_data6,idvar="FIPS",timevar="Date",xvar="PMCoarse_Value",yvar="PM25_Value",colorvar='DivisionName',sizevar='PM10_Value')
+plot(Motion2)
+
+#cat(Motion$html$chart, file=paste(output_location,"tmp.html",sep=''))
 
 rm(list=ls())
