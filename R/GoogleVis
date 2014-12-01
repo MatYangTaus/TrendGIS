@@ -1,4 +1,4 @@
-x<-c('googlevis','XML')
+x<-c('googleVis','XML')
 lapply(x, require, character.only=T)
 
 drive=c("E:\\")
