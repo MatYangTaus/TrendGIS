@@ -1,0 +1,33 @@
+x<-c('ggplot2','dplyr')
+lapply(x, require, character.only=T)
+
+#drive=c("E:\\")
+drive=c("C:\\Users\\Keita\\Google Drive\\Research\\")
+#setwd('/home/bst/other/kebisu/BW_PMCoarse/Data')
+#setwd("C:\\Users\\Keita\\Google Drive\\Research\\BW_PMCoarse\\Data")
+setwd(paste(drive,'BW_PMCoarse\\Data',sep='')) 
+#output_location=c('C:\\Users\\ke52\\Desktop\\Download\\')
+output_location=c('C:\\Users\\Keita\\Desktop\\Download\\')
+
+
+load('PMCoarseData.RData')#PMCoarse_data2
+Outside_main=c('02','15','72','78')
+PMCoarse_data3=PMCoarse_data2[!(substr(PMCoarse_data2$FIPS,1,2) %in% Outside_main),]
+
+PM10_DayAverage=aggregate(PM10_Value~Date.Local,mean,data=PMCoarse_data3)
+PM10_DayAverage=mutate(PM10_DayAverage,
+	Year_f=as.factor(substr(PM10_DayAverage$Date.Local,1,4)),
+	MonthDay_num=as.numeric(format(PM10_DayAverage$Date.Local,'%j')))
+
+test= select(PM10_DayAverage,MonthDay_num) 
+
+
+plot1=ggplot()+
+	geom_point(data=PM10_DayAverage,aes(x=MonthDay_num,y=PM10_Value,col=Year_f))
+
+plot1=ggplot()+
+	geom_line(data=PM10_DayAverage,aes(x=MonthDay_num,y=PM10_Value,col=Year_f))
+
+plot1+ geom_smooth(span=.15,method='loess',size=1.5)
+
+rm(list=ls())
