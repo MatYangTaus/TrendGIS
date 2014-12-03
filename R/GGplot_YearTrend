@@ -1,3 +1,5 @@
+#Note this trend plot is made by PMCoarse data: PM10 and PM2.5 Trend might be a bit diffrent if whole data are used
+
 x<-c('ggplot2','dplyr','gridExtra')
 lapply(x, require, character.only=T)
 
