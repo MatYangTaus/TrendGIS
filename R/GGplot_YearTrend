@@ -145,27 +145,44 @@ Trend_Line<-function(AirPol,Region,numb,yax_max)
 		ggtitle(title)+
 		coord_cartesian(ylim=c(0,yax_max))+
 		theme_bw()
-	print(output1)
+	return(output1)
 }
 
+#Region map of PM10
+PM10_List=list(
+    Trend_Line("PM10_Value",'Midwest','10',35),
+    Trend_Line("PM10_Value",'Northeast','10',35),
+    Trend_Line("PM10_Value",'West','10',35),
+    Trend_Line("PM10_Value",'South','10',35)
+)
+PM10_Region=do.call(arrangeGrob,c(PM10_List,nrow=2))
+
+#Region map of PM2.5
+PM25_List=list(
+    Trend_Line("PM25_Value",'Midwest','2.5',25),
+    Trend_Line("PM25_Value",'Northeast','2.5',25),
+    Trend_Line("PM25_Value",'West','2.5',25),
+    Trend_Line("PM25_Value",'South','2.5',25)
+)
+PM25_Region=do.call(arrangeGrob,c(PM25_List,nrow=2))
+
+#Region map of PMCoarse
+PMCoarse_List=list(
+    Trend_Line("PMCoarse_Value",'Midwest','10-2.5',25),
+    Trend_Line("PMCoarse_Value",'Northeast','10-2.5',25),
+    Trend_Line("PMCoarse_Value",'West','10-2.5',25),
+    Trend_Line("PMCoarse_Value",'South','10-2.5',25)
+)
+PMCoarse_Region=do.call(arrangeGrob,c(PMCoarse_List,nrow=2))
+
+
 pdf(paste(output_location,'PMTrend.pdf',paste=''),15,10)
-PM25_Whole
-Trend_Line("PM25_Value",'Northeast','2.5',25)
-Trend_Line("PM25_Value",'South','2.5',25)
-Trend_Line("PM25_Value",'Midwest','2.5',25)
-Trend_Line("PM25_Value",'West','2.5',25)
 PM10_Whole
-Trend_Line("PM10_Value",'Northeast','10',35)
-Trend_Line("PM10_Value",'South','10',35)
-Trend_Line("PM10_Value",'Midwest','10',35)
-Trend_Line("PM10_Value",'West','10',35)
+PM10_Region
+PM25_Whole
+PM25_Region
 PMCoarse_Whole
-Trend_Line("PMCoarse_Value",'Northeast','10-2.5',25)
-Trend_Line("PMCoarse_Value",'South','10-2.5',25)
-Trend_Line("PMCoarse_Value",'Midwest','10-2.5',25)
-Trend_Line("PMCoarse_Value",'West','10-2.5',25)
+PMCoarse_Region
 dev.off()
-
-
 
 rm(list=ls())
