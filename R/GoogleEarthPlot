@@ -1,0 +1,89 @@
+#jhpce01.jhsph.edu
+#qrsh -l mf=16G,h_vmem=32G 
+
+##PM10 Monitor
+x<-c('dplyr','data.table','ggplot2','sp')
+lapply(x,require,character.only=T)
+
+setwd('/home/bst/other/kebisu/BW_PMCoarse/Data')
+output_location='/home/bst/other/kebisu/Download/'
+
+#PM10
+load('PM10_DF.RData')#PM10_DF
+spring=c('Mar','Apr','May')
+summer=c('Jun','Jul','Aug')
+autumn=c('Sep','Oct','Nov')
+winter=c('Dec','Jan','Feb')
+PM10_DF$season=factor(ifelse(format(PM10_DF$Date.Local,"%b") %in% spring,'Spring',
+			ifelse(format(PM10_DF$Date.Local,"%b") %in% summer,'Summer',
+			ifelse(format(PM10_DF$Date.Local,"%b") %in% autumn,'Autumn','Winter'))))
+PM10Level=group_by(PM10_DF,FIPS_Monitor,season) %>%
+ summarize(.,PM10Ave=mean(PM10_level,na.rm=TRUE)) %>%
+ data.frame()
+PM10Level2=reshape(PM10Level,idvar="FIPS_Monitor",timevar="season",direction="wide") %>%
+	select(.,FIPS_Monitor,PM10Ave.Winter,PM10Ave.Spring,PM10Ave.Summer,PM10Ave.Autumn)
+names(PM10Level2)=c('FIPS_Monitor','Winter','Spring','Summer','Autumn')
+
+#Load Lat Long Info of PM10 Monitor
+load('PM10_MonLoc.RData')#PM10_MonLoc
+Mon_List_PM10=inner_join(PM10Level2,PM10_MonLoc,by='FIPS_Monitor')
+save(Mon_List_PM10,file=paste(output_location,'PM10_MonLocation.RData',sep=''))
+
+#PM25
+load('PM25_DF.RData')#PM25_DF
+spring=c('Mar','Apr','May')
+summer=c('Jun','Jul','Aug')
+autumn=c('Sep','Oct','Nov')
+winter=c('Dec','Jan','Feb')
+PM25_DF$season=factor(ifelse(format(PM25_DF$Date.Local,"%b") %in% spring,'Spring',
+			ifelse(format(PM25_DF$Date.Local,"%b") %in% summer,'Summer',
+			ifelse(format(PM25_DF$Date.Local,"%b") %in% autumn,'Autumn','Winter'))))
+PM25Level=group_by(PM25_DF,FIPS_Monitor,season) %>%
+ summarize(.,PM25Ave=mean(PM25_level,na.rm=TRUE)) %>%
+ data.frame()
+PM25Level2=reshape(PM25Level,idvar="FIPS_Monitor",timevar="season",direction="wide") %>%
+	select(.,FIPS_Monitor,PM25Ave.Winter,PM25Ave.Spring,PM25Ave.Summer,PM25Ave.Autumn)
+names(PM25Level2)=c('FIPS_Monitor','Winter','Spring','Summer','Autumn')
+
+#Load Lat Long Info of PM10 Monitor
+load('PM25_MonLoc.RData')#PM25_MonLoc
+Mon_List_PM25=inner_join(PM25Level2,PM25_MonLoc,by='FIPS_Monitor')
+save(Mon_List_PM25,file=paste(output_location,'PM25_MonLocation.RData',sep=''))
+
+##############################
+###############PC###############
+##############################
+x<-c('dplyr','data.table','ggplot2','sp','rgdal')
+lapply(x,require,character.only=T)
+
+drive='F'
+setwd(paste(drive,':\\BW_PMCoarse\\Data\\GIS',sep=''))
+
+load('PM10_MonLocation.RData')#Mon_List_PM10
+coordinates(Mon_List_PM10)=c('Longitude','Latitude')
+proj4string(Mon_List_PM10)=CRS("+proj=longlat +datum=WGS84")
+Mon_List3=spTransform(Mon_List_PM10, CRS("+proj=longlat +datum=WGS84"))
+writeOGR(Mon_List3, "PM10Mon.kml", layer="PM10", driver="KML") 
+
+load('PM25_MonLocation.RData')#Mon_List_PM25
+coordinates(Mon_List_PM25)=c('Longitude','Latitude')
+proj4string(Mon_List_PM25)=CRS("+proj=longlat +datum=WGS84")
+Mon_List3=spTransform(Mon_List_PM25,CRS("+proj=longlat +datum=WGS84"))
+writeOGR(Mon_List3, "PM25Mon.kml", layer="PM25", driver="KML") 
+
+
+load('F:\\BW_PMCoarse\\Data\\CensusData\\Centroid_weight.RData')#Centroid_weight
+coordinates(Centroid_weight)=c('Long_weight','Lat_weight')
+proj4string(Centroid_weight)=CRS("+proj=longlat +datum=WGS84")
+Centroid_weight2=spTransform(Centroid_weight,CRS("+proj=longlat +datum=WGS84"))
+writeOGR(Centroid_weight2, "County_PWC.kml", layer="PWC", driver="KML") 
+
+load('F:\\BW_PMCoarse\\Data\\CensusData\\Centroid_2010_weight.RData')#Centroid_2010_weight
+coordinates(Centroid_2010_weight)=c('Long_weight','Lat_weight')
+proj4string(Centroid_2010_weight)=CRS("+proj=longlat +datum=WGS84")
+Centroid_2010_weight2=spTransform(Centroid_2010_weight,CRS("+proj=longlat +datum=WGS84"))
+writeOGR(Centroid_2010_weight2, "County_2010_PWC.kml", layer="PWC", driver="KML") 
+
+
+
+rm(list=ls())
