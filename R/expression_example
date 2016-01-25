@@ -1,0 +1,129 @@
+
+x<-c("dplyr","ggplot2","zoo")
+lapply(x, require, character.only=T)
+setwd('C:\\Users\\Keita\\Desktop\\Download')
+
+NO2_data=data.frame(matrix(nrow=0,ncol=28))
+test=c(1990:2014)
+for (i in 1:length(test)){
+url=paste("http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/daily_42602_",test[i],".zip",sep='')
+download.file(url, 'C:\\Users\\Keita\\Desktop\\DownLoad\\temp2.zip')
+temp=read.csv(unz('C:\\Users\\Keita\\Desktop\\DownLoad\\temp2.zip',paste("daily_42602_",test[i],".csv",sep='')))
+NO2_data=rbind(NO2_data,temp)
+names(NO2_data)=names(temp)
+rm(temp)
+}
+
+table(NO2_data$Units.of.Measure)
+table(NO2_data$Method.Name)
+table(NO2_data$Observation.Count)
+
+NO2_data2=filter(NO2_data,Observation.Count>=16&State.Code!='CC')
+
+NO2_data2$State.Code=as.integer(NO2_data2$State.Code)
+NO2_data2$State.Code=sprintf("%02d",NO2_data2$State.Code)
+NO2_data2$County.Code=as.integer(NO2_data2$County.Code)
+NO2_data2$County.Code=sprintf("%03d",NO2_data2$County.Code)
+NO2_data2$Site.Num=as.integer(NO2_data2$Site.Num)
+NO2_data2$Site.Num=sprintf("%04d",NO2_data2$Site.Num)
+NO2_data2$Date.Local=as.Date(NO2_data2$Date.Local,format="%Y-%m-%d")
+colnames(NO2_data2)[colnames(NO2_data2)=='Arithmetic.Mean']='NO2_Value'
+#save(NO2_data2,file='NO2Data.RData')
+
+excl_vars=names(NO2_data2) %in% c("Datum","Parameter.Name","Sample.Duration","Pollutant.Standard","Event.Type",
+		"Observation.Percent","X1st.Max.Value","X1st.Max.Hour","Method.Name","Date.of.Last.Change","Local.Site.Name","CBSA.Name") 
+NO2_data3=NO2_data2[!excl_vars]
+NO2_data3$FIPS=paste(NO2_data3$State.Code,NO2_data3$County.Code,NO2_data3$Site.Num,sep='')
+NO2_data3$YR=format(NO2_data3$Date.Local,"%Y")
+NO2_data3$MON=format(NO2_data3$Date.Local,"%m")
+NO2_data3$YR_Mon=paste(NO2_data3$YR,NO2_data3$MON,sep='-')
+table(NO2_data3$YR,NO2_data3$State.Code)
+Mon_list_length=sort(table(NO2_data3$FIPS),decreasing=TRUE)
+
+output_data=aggregate(NO2_Value~YR_Mon,NO2_data3,mean)
+output_data$Yr=substr(output_data$YR_Mon,1,4)
+output_data$Month=substr(output_data$YR_Mon,6,7)
+output_data$YR_Mon2=as.Date(paste(output_data$YR_Mon,"-15",sep=""))
+output_data$Warm_Cold=c('Cool')
+list_warm=c('03','04','05','06','07','08')
+output_data$Warm_Cold[output_data$Month %in% list_warm]=c('Warm')
+
+ymax_value=floor(max(output_data$NO2_Value)*1.25)
+text=expression("NO"[2]*" Value")
+title=expression("NO"[2]*" National Trend 1990-2014 ")
+
+plot=ggplot(data=output_data,aes(x=YR_Mon2,y=NO2_Value,color=Warm_Cold))+
+geom_point()+
+ylim(0,ymax_value)+
+ylab(text) +
+xlab("Year") +
+scale_color_discrete(name="Season")+
+ggtitle(title)
+pdf('NationalNO2.pdf')
+print(plot)
+dev.off()
+
+pdf('NO2Trend_By20.pdf') 
+for (i in 1:20){
+Mon1=names(Mon_list_length[i])
+Specific_Monitor=NO2_data3[NO2_data3$FIPS==Mon1,]
+output_data=aggregate(NO2_Value~YR_Mon,Specific_Monitor,mean)
+output_data$Month=substr(output_data$YR_Mon,6,7)
+output_data$YR_Mon2=as.Date(paste(output_data$YR_Mon,"-15",sep=""))
+output_data$Warm_Cold=c('Cool')
+list_warm=c('03','04','05','06','07','08')
+output_data$Warm_Cold[output_data$Month %in% list_warm]=c('Warm')
+ymax_value=floor(max(output_data$NO2_Value)*1.25)
+
+text=expression("NO"[2]*" Value")
+title=substitute(paste(NO[2],' Trend 1990-2014 at Monitor ',nn),list(nn=Mon1))
+
+plot=ggplot(data=output_data,aes(x=YR_Mon2,y=NO2_Value,color=Warm_Cold))+
+geom_point()+
+ylim(0,ymax_value)+
+ylab(text) +
+xlab("Year") +
+scale_color_discrete(name="Season")+
+ggtitle(title)
+
+print(plot)
+}
+dev.off()
+
+##Box Plot##
+
+output_data=aggregate(NO2_Value~YR_Mon,NO2_data3,mean)
+output_data$Yr=substr(output_data$YR_Mon,1,4)
+
+title=expression("NO"[2]*" National Box Plot 1990-2014")
+plot=ggplot(aes(y=NO2_Value,x=Yr),data=output_data)+
+geom_boxplot()+
+ylab(text) +
+xlab("Year") +
+coord_fixed(ratio=0.3)+
+ggtitle(title)
+pdf('NO2Boxplot_National.pdf',15,4)
+print(plot)
+dev.off()
+
+
+St_list=unique(NO2_data3$State.Name)
+pdf('NO2Boxplot_State.pdf',15,4)
+for (i in 1:length(St_list)){
+output_data=NO2_data3[NO2_data3$State.Name==St_list[i],]
+output_data$Yr=substr(output_data$YR_Mon,1,4)
+State_Name=as.character(St_list[i])
+
+text=expression("NO"[2]*" Value")
+title=substitute(paste(NO[2],' Boxplot 1990-2014 at ',nn),list(nn=State_Name))
+plot=ggplot(aes(y=NO2_Value,x=Yr),data=output_data)+
+geom_boxplot()+
+ylim(0,50)+
+ylab(text) +
+xlab("Year") +
+ggtitle(title)
+print(plot)
+}
+dev.off()
+
+rm(list=ls())
