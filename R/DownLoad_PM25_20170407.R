@@ -1,7 +1,8 @@
 x<-c("dplyr","ggplot2","data.table")
 lapply(x, require, character.only=T)
 
-drive=c("K:\\AirData\\OriginalData")
+#drive=c("K:\\AirData\\OriginalData")
+drive=c("F:\\Research\\AirTrend\\TrendGIS\\Data")
 setwd(drive)
 
 ######################
