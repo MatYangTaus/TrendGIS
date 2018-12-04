@@ -1,7 +1,8 @@
-x<-c("tidyverse", "reshape2")
+x<-c("tidyverse", "reshape2", "lubridate", "sf", "USAboundaries")
 lapply(x, require, character.only=T)
 
-drive=c("F:\\Research\\AirTrend\\TrendGIS\\Data")
+#drive=c("F:\\Research\\AirTrend\\TrendGIS\\Data")
+drive = c('K:\\AirData\\OriginalData')
 setwd(drive)
 
 load("PM25_Species_Data_20160212.RData") #PM25_Spec_Data
@@ -81,14 +82,10 @@ CA_temp = PM25_Spec_Data %>%
 	summarize(Value = mean(Arithmetic.Mean)) %>%
 	ungroup() %>%
 	arrange(FIPS_Site, Parameter.Code, Date) %>%
-#	group_by(FIPS_Site, Parameter.Code) %>%
-#	mutate(Numbering = row_number()) %>%
-#	ungroup() %>%
-#	arrange(FIPS_Site, Parameter.Code) %>%
 	inner_join(PolName2, by = 'Parameter.Code') %>%
 	select(FIPS_Site, Date, PolName2, Value)
 
-CA_temp2 = dcast(FIPS_Site + Date ~ PolName2, value.var = 'Value') %>%
+CA_temp2 = dcast(CA_temp, FIPS_Site + Date ~ PolName2, value.var = 'Value') %>%
 	mutate(Year = year(Date))
 
 table(CA_temp2$FIPS_Site, CA_temp2$Year)
@@ -109,3 +106,37 @@ CA_temp3 = CA_temp %>%
 	summarize(Value = mean(Value, na.rm = TRUE)) %>%
 	ungroup() %>%
 	inner_join(MonLoc, by = 'FIPS_Site')
+
+#GIS Part
+YEAR = 2004
+POL = 'OC_LC_TOR'
+
+temp_geo = CA_temp3 %>%
+#	filter(PolName2 == POL, Year == YEAR) %>%
+	filter(PolName2 == POL) %>%
+	st_as_sf(coords = c("Long", "Lat"), crs = 4326) 
+
+state_names <- c("california")
+CA<-us_states(resolution = "high", states = state_names) %>%   
+	st_transform(crs = 4326)
+
+ggplot() + 
+	geom_sf(data=CA, color = "gray30", lwd=1.2, fill=NA) +
+	geom_sf(data=temp_geo, aes(color = Value), size = 4) +
+	facet_wrap(~Year) +
+	theme_bw() +
+	scale_color_gradient(low = "green", high = "red")
+#scale_color_viridis(option="heat")
+
+testmap =  ggplot() + 
+	geom_sf(data=CA, color = "gray30", lwd=1.2, fill=NA) +
+	geom_sf(data=temp_geo, aes(color = Value, frame = Year), size = 4) 
+
+geom_point(aes(x = lon, y = lat, size = est_followers, 
+                 frame = date),
+             data = rladies_frames, colour = 'purple', alpha = .5)
+
+
+
+
+
