@@ -48,12 +48,58 @@ temp2 %>%
 	group_by(FIPS = substr(FIPSSite, 1, 5)) %>%
 	summarize(PM25 = mean(PM25)) %>%
 	mutate(CountyFIPS = substr(FIPS, 3, 5)) %>%
-	right_join(temp4, by = 'CountyFIPS') %>%
+	left_join(temp4, by = 'CountyFIPS') %>%
 	ggplot() +
 		geom_point(aes(x= PM25, y = n)) +
-	#	gghighlight_point(aes(x= PM25, y = n), label_key = type, n > 1000, col = 'red') +
-		theme_minimal()
+		#gghighlight_point(n>1000, label_key = type, col = 'red') +
+		ggtitle('PM2.5 Annual Mean and Exceeeding Hours') +
+		xlab('Annual Mean of Daily PM2.5') +
+		ylab('Total Hours Exceeeding 35ug/m3') +
+        xlim(0, 20) +
+		theme_minimal() +
+		theme(plot.title = element_text(hjust = 0.5), axis.title.y = element_text(size = 8), axis.text.y = element_text(size = 7))
 
 
+## Day exceeding 35
+url = "https://aqs.epa.gov/aqsweb/airdata/daily_88101_2017.zip"
+download.file(url,'C:\\Users\\kebisu\\Downloads\\temp2.zip')
+temp=read.csv(unz('C:\\Users\\kebisu\\Downloads\\temp2.zip',paste("daily_88101_2017",".csv",sep='')),header=TRUE)
 
-filter(temp2, County.Name =='Ventura', Date.Local == '2017-12-07')
+temp5 = temp %>%
+	rename(Value = Arithmetic.Mean) %>%
+	filter(Value >0, !is.na(Value), Sample.Duration != '24-HR BLK AVG') %>%
+	mutate(FIPS = paste0(sprintf('%02d', as.numeric(as.character(State.Code))), sprintf('%03d', as.numeric(as.character(County.Code))), sprintf('%04d', as.numeric(as.character(Site.Num)))), FIPSPOC = paste0(FIPS, sprintf('%02d', POC))) %>%
+	filter(State.Code == 6) %>%
+	select(FIPS, FIPSPOC, Date.Local, Latitude, Longitude, Value) %>%
+	arrange(FIPSPOC, Date.Local) %>%
+	{.}
+
+temp6 = temp5 %>%
+	group_by(FIPSPOC) %>%
+	count() %>% 
+	filter(n > 120)
+
+temp7 = temp5 %>%
+	filter(FIPSPOC %in% temp6$FIPSPOC) %>%
+	filter(Value >35) %>%
+	count(FIPSPOC) 
+
+temp5 %>%
+	filter(FIPSPOC %in% temp6$FIPSPOC) %>%
+	group_by(FIPSPOC) %>%
+	summarize(PM25 = mean(Value)) %>%
+	#group_by(FIPSSite = substr(FIPSPOC, 1, 9)) %>%
+	#summarize(PM25 = mean(PM25mean)) %>%
+	left_join(temp7, by = 'FIPSPOC') %>%
+	mutate(n = ifelse(is.na(n), 0, n)) %>% # filter(substr(FIPSPOC, 3, 5) == '075')
+	#filter(n>20)
+	ggplot() +
+		geom_point(aes(x= PM25, y = n)) +
+		#gghighlight_point(n>1000, label_key = type, col = 'red') +
+		ggtitle('PM2.5 Annual Mean and Exceeeding Days') +
+		xlab('Annual Mean of Daily PM2.5') +
+		ylab('Total Number of Days Exceeeding 35ug/m3') +
+        xlim(0, 25) +
+		theme_minimal() +
+		theme(plot.title = element_text(hjust = 0.5), axis.title.y = element_text(size = 8), axis.text.y = element_text(size = 7))
+
