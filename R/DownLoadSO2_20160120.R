@@ -9,7 +9,7 @@ setwd(drive)
 ######################
 SO2_AQS=data.frame(matrix(nrow=0,ncol=0))
 SO2_Monitor=data.frame(matrix(nrow=0,ncol=0))
-test2=c(1990:2018)
+test2=c(1980:2019)
 
 ptm <- proc.time()
 for (i in 1:length(test2)){  

@@ -9,10 +9,11 @@ setwd(drive)
 ######################
 O3_AQS=data.frame(matrix(nrow=0,ncol=0))
 O3_Monitor=data.frame(matrix(nrow=0,ncol=0))
-test2=c(1990:2018)
+test2=c(1980:2019)
 
 ptm <- proc.time()
 for (i in 1:length(test2)){  
+       tryCatch({
 	url=paste("https://aqs.epa.gov/aqsweb/airdata/daily_44201_",test2[i],".zip",sep='')
 	download.file(url,'temp2.zip')
 	temp=read.csv(unz('temp2.zip',paste("daily_44201_",test2[i],".csv",sep='')),header=TRUE)
@@ -39,6 +40,7 @@ for (i in 1:length(test2)){
 	O3_Monitor=rbind(O3_Monitor,temp4)
 
 	rm(url,temp,temp2,temp3,temp4)
+       }, error=function(e){})	
 }
 proc.time() - ptm #This takes about 13min
 

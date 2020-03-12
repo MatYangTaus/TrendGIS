@@ -9,7 +9,7 @@ setwd(drive)
 ######################
 PM25_AQS=data.frame(matrix(nrow=0,ncol=0))
 PM25_Monitor=data.frame(matrix(nrow=0,ncol=0))
-test2=c(1990:2018)
+test2=c(1990:2019)
 
 # Load Parameter List; Pick up species I want to DL.
 ## Note this list is created by downloading all year and take out parameter name.
@@ -21,7 +21,7 @@ ex_list=c('Ambient Max Temperature','Ambient Min Temperature','Ambient Temperatu
 	'EC3 PM2.5 LC','EC CSN_Rev Unadjusted PM2.5 LC TOR','Sample Min Baro Pressure',
 	'EC CSN_Rev Unadjusted PM2.5 LC TOT','EC1 CSN_Rev Unadjusted PM2.5 LC',
 	'EC2 CSN_Rev Unadjusted PM2.5 LC','EC3 CSN_Rev Unadjusted PM2.5 LC',
-	'OC CSN Unadjusted PM2.5 LC TOT','OC CSN_Rev Unadjusted PM2.5 LC TOR',
+#	'OC CSN Unadjusted PM2.5 LC TOT','OC CSN_Rev Unadjusted PM2.5 LC TOR',
 	'OC CSN_Rev Unadjusted PM2.5 LC TOT','OC1 CSN Unadjusted PM2.5 LC TOT',
 	'OC1 CSN_Rev Unadjusted PM2.5 LC','OC1 PM2.5 LC','OC2 CSN Unadjusted PM2.5 LC TOT',
 	'OC2 CSN_Rev Unadjusted PM2.5 LC','OC2 PM2.5 LC','OC3 CSN Unadjusted PM2.5 LC TOT',
